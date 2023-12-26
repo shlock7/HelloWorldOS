@@ -38,6 +38,10 @@ mykernel.iso: mykernel.bin
 	grub-mkrescue --output=$@ iso
 	rm -rf iso
 
+run: mykernel.iso
+	(killall virtualboxvm && sleep 1) || true
+	virtualboxvm --startvm "HelloWorldOS" &
+
 clean:
 	rm -r *.o
 	rm -r *.bin
