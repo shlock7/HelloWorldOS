@@ -26,6 +26,6 @@ extern "C" void system_constructors(){
 
 // 操作系统主启动函数，这里我们打印一个字符串然后让操作系统进入等待
 extern "C" void kernelMain(void* multiboot_structure, unsigned int magicnumber) {
-    printf((char*)"hello world!");
+    printf((char*)"\nHello world!");
     while(1);
 }
