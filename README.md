@@ -24,3 +24,6 @@ menuentry 'HelloWorldOS' {
 
 
 在物理机上运行借助了本来的引导程序，添加了一个启动项。
+
+## REFERENCE
+> http://wyoos.org
