@@ -1,4 +1,5 @@
 #include "types.h"
+#include "gdt.h"
 
 // 因为我们的操作系统没有TTY IO，所以我们需要重新写一个printf函数
 void printf(char* str) {
@@ -28,5 +29,8 @@ extern "C" void system_constructors(){
 // 操作系统主启动函数，这里我们打印一个字符串然后让操作系统进入等待
 extern "C" void kernelMain(void* multiboot_structure, uint32_t magicnumber) {
     printf((char*)"Hello world!");
+
+    GlobalDescriptorTable gdt;
+    
     while(1);
 }

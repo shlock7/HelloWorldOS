@@ -32,5 +32,4 @@ public:
     uint16_t DataSegmentSelector();
 };
 
-
 #endif

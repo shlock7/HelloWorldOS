@@ -4,8 +4,8 @@ GPPPARAMS = -m32 -fno-use-cxa-atexit -fleading-underscore -fno-exceptions -fno-b
 ASPARAMS = --32		  # 传递给汇编器的参数
 LDPARAMS = -melf_i386 -no-pie # 存储了传递给链接器的参数，-melf_i386指定生成ELF格式的32位目标文件
 
-
-objects = loader.o kernel.o # 构建目标文件的源文件列表
+# 构建目标文件的源文件列表
+objects = loader.o kernel.o gdt.o
 
 # $@ 目标文件名
 # $< 第一个依赖文件
