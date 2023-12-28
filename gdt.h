@@ -27,7 +27,7 @@ public:
 public:
     GlobalDescriptorTable();
     ~GlobalDescriptorTable();
-
+    // 段选择子
     uint16_t CodeSegmentSelector();
     uint16_t DataSegmentSelector();
 };

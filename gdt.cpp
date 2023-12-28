@@ -3,26 +3,26 @@
 GlobalDescriptorTable::GlobalDescriptorTable()
     : nullSegmentDescriptor(0, 0, 0),
     unusedSegmentDescriptor(0, 0, 0),
-    codeSegmentDescriptor(0, 64 * 1024 * 1024, 0x9a),
+    codeSegmentDescriptor(0, 64 * 1024 * 1024, 0x9a),   // 64M 内存
     dataSegmentDescriptor(0, 64 * 1024 * 1024, 0x92) {
     uint32_t i[2];             // GDTR,48bit
     i[1] = (uint32_t)this;     // GDT的首地址, 32bit
     i[0] = sizeof(GlobalDescriptorTable) << 16;  // 这个值将被加载到 GDTR 寄存器的高 16 位 16+32=48 bit
     // 通过 lgdt 汇编指令加载 GDTR 寄存器。
-        asm volatile("lgdt (%0)"
-            :                               /* outputs */
-            : "p" (((uint8_t *)i) + 2)      /* inputs */
-            );
+    asm volatile("lgdt (%0)"
+        :                               /* outputs */
+        : "p" (((uint8_t *)i) + 2)      /* inputs */
+        );
 }
 
 GlobalDescriptorTable::~GlobalDescriptorTable() {}
 
-// 数据段 由于要获取字节为单位的偏移量，需要将指针的步长转化成uint8_t单位
+// 获取数据段的地址
 uint16_t GlobalDescriptorTable::DataSegmentSelector() {
     return ((uint8_t*)&dataSegmentDescriptor - (uint8_t*)this);
 }
 
-// 代码段 得到偏移的字节数
+// 代码段的地址
 uint16_t GlobalDescriptorTable::CodeSegmentSelector() {
     return ((uint8_t*)&codeSegmentDescriptor - (uint8_t*)this);
 }
@@ -33,23 +33,25 @@ GlobalDescriptorTable::SegmentDescriptor::SegmentDescriptor(uint32_t base,
     uint8_t* target = (uint8_t*)this;
 
     if (limit < 65536) {  // 表示寻址能力限制在2^16次方内, 不需要用保护模式
-        target[6] = 0x80; // 设置 G 位为 1，表示使用 4KB 页面大小
+        target[6] = 0x40; // DB位设置为 1
     }
     else { // 否则的话就需要使用保护模式进行2^20次方寻址
-        // 如果全 1 会有越界的问题
-        if ((limit & 0xfff) != 0xfff) { // 如果不是全部为 1，则表示可以使用 4KB 页面
-            limit = (limit >> 12) - 1;  // 这是为了将原本的页面数转换为字节数，因为 limit 是以页面数表示的，而不是字节数
+        // G 位和 DB 位都设置为 1 最小寻址单位设置为页(4KB)
+        target[6] = 0xC0;
+
+        // 判断limit是否为 4KB的整数倍
+        if ((limit & 0xfff) != 0xfff) { // 不是 4KB的整数倍，需要缺失 1 页(4KB)
+            limit = (limit >> 12) - 1;
         }
         else { // 如果是全部为 1，则说明已经是 4KB 的整数倍，不需要再减去 1
             limit = limit >> 12;
         }
-        // 到这里，limit 表示的是以字节为单位的段大小
-        // G 位和 DB 位都设置为 1  表示操作数为32位
-        target[6] = 0xC0;
     }
+
     // 设置限制字段
     target[0] = limit & 0xff;
     target[1] = (limit >> 8) & 0xff;
+    // 或运算是为了设置 target[6] 的低四位而不影响高四位
     target[6] |= (limit >> 16) & 0xf;
 
     // 设置基地址字段
